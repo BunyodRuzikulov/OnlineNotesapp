@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Kategoriyalar / Papkalar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-blue-600 font-semibold">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-gray-600 hover:text-blue-600">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-blue-600">Kategoriyalar / Papkalar</h2>
+                        <button onclick="document.getElementById('folder-form').classList.toggle('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Yangi Papka</button>
+                    </div>
+
+                    <!-- Folder Form -->
+                    <form id="folder-form" method="POST" class="mb-6 hidden">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Saqlash</button>
+                    </form>
+
+                    <!-- Folders List -->
+                    <div id="folders-list" class="space-y-4">
+                        {% for folder in folders %}
+                            <div class="p-4 bg-gray-50 rounded-lg shadow-sm" data-folder-id="{{ folder.id }}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-semibold">{{ folder.name }}</h3>
+                                    <a href="{% url 'delete_folder' folder.id %}" class="text-red-600 hover:underline" onclick="return confirm('Papkani o‘chirishni xohlaysizmi?')">O‘chirish</a>
+                                </div>
+                                <div class="folder-notes min-h-[50px] p-2 border border-dashed border-gray-300 rounded" 
+                                     ondragover="allowDrop(event)" 
+                                     ondrop="dropNote(event, {{ folder.id }})">
+                                    {% for note in folder.note_set.all %}
+                                        <div class="p-2 bg-white rounded shadow-sm mb-2">{{ note.title }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-600">Papkalar yo‘q.</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Unassigned Notes -->
+                    <div class="mt-8">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Kategoriyasiz Yozuvlar</h3>
+                        <div id="unassigned-notes" class="space-y-4">
+                            {% for note in unassigned_notes %}
+                                <div class="p-2 bg-white rounded shadow-sm draggable" draggable="true" data-note-id="{{ note.id }}">{{ note.title }}</div>
+                            {% empty %}
+                                <p class="text-gray-600">Kategoriyasiz yozuvlar yo‘q.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function dragNote(event) {
+            event.dataTransfer.setData('noteId', event.target.getAttribute('data-note-id'));
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function dropNote(event, folderId) {
+            event.preventDefault();
+            const noteId = event.dataTransfer.getData('noteId');
+            fetch(`{% url 'assign_note' 0 0 %}`.replace('0/0', `${noteId}/${folderId}`), {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+        }
+
+        document.querySelectorAll('.draggable').forEach(item => {
+            item.addEventListener('dragstart', dragNote);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Yozuvni Ko‘rish</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-blue-600 font-semibold">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-gray-600 hover:text-blue-600">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-gray-600 hover:text-blue-600">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                    <li><a href="{% url 'profile' %}" class="text-gray-600 hover:text-blue-600">Profil</a></li>
+                    <li><a href="{% url 'settings' %}" class="text-gray-600 hover:text-blue-600">Sozlamalar</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-blue-600">{{ note.title }}</h2>
+                        <div class="space-x-2">
+                            <a href="{% url 'edit_note' note.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Tahrirlash</a>
+                            <a href="{% url 'delete_note' note.id %}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700" onclick="return confirm('Yozuvni o‘chirishni xohlaysizmi?')">O‘chirish</a>
+                        </div>
+                    </div>
+
+                    <!-- Note Details -->
+                    <div class="mb-6">
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">Kategoriya:</span> {{ note.folder.name|default:"Yo‘q" }}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">Taglar:</span> {{ note.tags.all|join:", "|default:"Yo‘q" }}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">Yaratilgan sana:</span> {{ note.created_at|date:"Y-m-d H:i" }}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">Yangilangan sana:</span> {{ note.updated_at|date:"Y-m-d H:i" }}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">Ulashish rejimi:</span> {{ note.get_share_mode_display }}
+                        </p>
+                    </div>
+
+                    <!-- Note Content -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Matn</h3>
+                        <div class="prose max-w-none p-4 border rounded-lg bg-gray-50">
+                            {{ note.content|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Attached Files -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Fayllar</h3>
+                        {% if note.file %}
+                            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+                                <i class="fas fa-file text-2xl text-blue-600"></i>
+                                <a href="{{ note.file.url }}" class="text-blue-600 hover:underline" target="_blank">{{ note.file.name|cut:"notes/files/" }}</a>
+                            </div>
+                        {% else %}
+                            <p class="text-gray-600">Fayllar yo‘q.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Share Note -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Yozuvni Ulashish</h3>
+                        {% if note.share_mode == 'public' %}
+                            <p class="text-sm text-gray-600 mb-2">Umumiy havola:</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" value="{{ request.build_absolute_uri }}" class="w-full p-2 border rounded-lg bg-gray-50" readonly>
+                                <button onclick="copyLink()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-copy"></i> Nusxalash
+                                </button>
+                            </div>
+                        {% else %}
+                            <p class="text-gray-600">Bu yozuv faqat shaxsiy foydalanish uchun.</p>
+                            <a href="{% url 'edit_note' note.id %}" class="text-blue-600 hover:underline">Ulashish rejimini o‘zgartirish</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function copyLink() {
+            const linkInput = document.querySelector('input[type="text"]');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('Havola nusxalandi!');
+        }
+    </script>
+</body>
+</html>

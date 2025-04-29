@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Asosiy Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'profile' %}" class="text-gray-600 hover:text-blue-600">Profil</a>
+                <a href="{% url 'settings' %}" class="text-gray-600 hover:text-blue-600">Sozlamalar</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-blue-600 font-semibold">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-gray-600 hover:text-blue-600">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-gray-600 hover:text-blue-600">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Dashboard -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-blue-600">Yozuvlar Ro‘yxati</h2>
+                        <a href="{% url 'create_note' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Yangi Yozuv</a>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                        <input type="text" name="q" value="{{ query }}" oninput="this.form.submit()" placeholder="Yozuvni qidirish..." class="w-full md:w-1/2 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <select name="sort" onchange="this.form.submit()" class="p-2 border rounded-lg">
+                            <option value="date-desc" {% if sort == 'date-desc' %}selected{% endif %}>Sana (yangidan eskiga)</option>
+                            <option value="date-asc" {% if sort == 'date-asc' %}selected{% endif %}>Sana (eskidan yangiga)</option>
+                            <option value="name-asc" {% if sort == 'name-asc' %}selected{% endif %}>Nom (A-Z)</option>
+                            <option value="name-desc" {% if sort == 'name-desc' %}selected{% endif %}>Nom (Z-A)</option>
+                        </select>
+                    </div>
+
+                    <!-- Notes List -->
+                    <div id="notes-list" class="space-y-4">
+                        {% for note in notes %}
+                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm">
+                                <div>
+                                    <h3 class="text-lg font-semibold">{{ note.title }}</h3>
+                                    <p class="text-sm text-gray-600">Sana: {{ note.created_at|date:"Y-m-d" }} | Taglar: {{ note.tags.all|join:", " }}</p>
+                                </div>
+                                <div class="space-x-2">
+                                    <a href="{% url 'edit_note' note.id %}" class="text-blue-600 hover:underline">Tahrirlash</a>
+                                    <a href="{% url 'delete_note' note.id %}" class="text-red-600 hover:underline" onclick="return confirm('Yozuvni o‘chirishni xohlaysizmi?')">O‘chirish</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-600">Yozuvlar topilmadi.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

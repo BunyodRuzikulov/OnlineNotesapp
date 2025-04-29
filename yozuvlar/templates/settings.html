@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Sozlamalar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-gray-600 hover:text-blue-600">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-gray-600 hover:text-blue-600">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                    <li><a href="{% url 'profile' %}" class="text-gray-600 hover:text-blue-600">Profil</a></li>
+                    <li><a href="{% url 'settings' %}" class="text-blue-600 font-semibold">Sozlamalar</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-blue-600 mb-6">Sozlamalar</h2>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <!-- Language Selection -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-4">Til</h3>
+                            <div class="flex gap-4">
+                                <select name="language" id="language-select" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                    <option value="uz">O‘zbekcha</option>
+                                    <option value="ru">Русский</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Theme Selection -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-4">Mavzu</h3>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="dark_mode" id="dark-mode-toggle" onchange="toggleDarkMode()" class="mr-2">
+                                    Qorong‘i rejim
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-4">Xavfsizlik</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">Ikki bosqichli autentifikatsiya (2FA)</label>
+                                    <button type="button" id="2fa-toggle" onclick="toggle2FA()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Yoqish</button>
+                                </div>
+                                <p id="2fa-status" class="text-sm text-gray-600">Hozirda: <span class="font-semibold">O‘chirilgan</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Save Settings -->
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sozlamalarni saqlash</button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            const isDarkMode = document.getElementById('dark-mode-toggle').checked;
+            const body = document.getElementById('body');
+            if (isDarkMode) {
+                body.classList.remove('bg-gray-100');
+                body.classList.add('bg-gray-900', 'text-white');
+                document.querySelector('nav').classList.remove('bg-white');
+                document.querySelector('nav').classList.add('bg-gray-800');
+                document.querySelector('aside').classList.remove('bg-white');
+                document.querySelector('aside').classList.add('bg-gray-800');
+                document.querySelector('main > div').classList.remove('bg-white');
+                document.querySelector('main > div').classList.add('bg-gray-800');
+            } else {
+                body.classList.remove('bg-gray-900', 'text-white');
+                body.classList.add('bg-gray-100');
+                document.querySelector('nav').classList.remove('bg-gray-800');
+                document.querySelector('nav').classList.add('bg-white');
+                document.querySelector('aside').classList.remove('bg-gray-800');
+                document.querySelector('aside').classList.add('bg-white');
+                document.querySelector('main > div').classList.remove('bg-gray-800');
+                document.querySelector('main > div').classList.add('bg-white');
+            }
+        }
+
+        function toggle2FA() {
+            const button = document.getElementById('2fa-toggle');
+            const status = document.getElementById('2fa-status');
+            const isEnabled = button.textContent === 'Yoqish';
+
+            if (isEnabled) {
+                const phone = prompt("2FA uchun telefon raqamingizni kiriting:");
+                if (phone) {
+                    alert(`2FA yoqildi! Tasdiqlash kodi ${phone} raqamiga yuborildi.`);
+                    button.textContent = 'O‘chirish';
+                    status.innerHTML = 'Hozirda: <span class="font-semibold">Yoqilgan</span>';
+                }
+            } else {
+                if (confirm("2FA ni o‘chirishni xohlaysizmi?")) {
+                    alert("2FA o‘chirildi!");
+                    button.textContent = 'Yoqish';
+                    status.innerHTML = 'Hozirda: <span class="font-semibold">O‘chirilgan</span>';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

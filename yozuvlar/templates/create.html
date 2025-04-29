@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Yozuv Yaratish / Tahrirlash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-blue-600 mb-6">Yozuv Yaratish / Tahrirlash</h2>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Title -->
+                <div class="mb-4">
+                    <label for="id_title" class="block text-sm font-medium text-gray-700">Sarlavha</label>
+                    {{ form.title }}
+                </div>
+
+                <!-- Rich Text Editor -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Matn</label>
+                    <div class="flex gap-2 mb-2">
+                        <button type="button" onclick="formatText('bold')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-bold"></i></button>
+                        <button type="button" onclick="formatText('italic')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-italic"></i></button>
+                        <button type="button" onclick="formatText('underline')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-underline"></i></button>
+                    </div>
+                    <div id="editor" contenteditable="true" class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 overflow-y-auto">{{ form.content.value|default:"" }}</div>
+                    <textarea name="content" id="content" class="hidden">{{ form.content.value|default:"" }}</textarea>
+                </div>
+
+                <!-- Category and Tags -->
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <div class="w-full md:w-1/2">
+                        <label for="id_folder" class="block text-sm font-medium text-gray-700">Kategoriya</label>
+                        {{ form.folder }}
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <label for="id_tags" class="block text-sm font-medium text-gray-700">Taglar</label>
+                        {{ form.tags }}
+                    </div>
+                </div>
+
+                <!-- File Upload -->
+                <div class="mb-4">
+                    <label for="id_file" class="block text-sm font-medium text-gray-700">Rasm yoki Fayl Yuklash</label>
+                    {{ form.file }}
+                    <p id="file-status" class="text-sm text-gray-600 mt-2"></p>
+                </div>
+
+                <!-- Share Mode -->
+                <div class="mb-4">
+                    <label for="id_share_mode" class="block text-sm font-medium text-gray-700">Ulashish Rejimi</label>
+                    {{ form.share_mode }}
+                </div>
+
+                <!-- Save Button -->
+                <div class="flex justify-between items-center">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Saqlash</button>
+                    <p id="auto-save-status" class="text-sm text-gray-600">Oxirgi saqlash: hali saqlanmadi</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            document.getElementById('editor').focus();
+            updateTextarea();
+        }
+
+        function updateTextarea() {
+            const editor = document.getElementById('editor');
+            const textarea = document.getElementById('content');
+            textarea.value = editor.innerHTML;
+        }
+
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('file-status').textContent = `Yuklandi: ${file.name}`;
+            } else {
+                document.getElementById('file-status').textContent = '';
+            }
+        });
+
+        document.getElementById('editor').addEventListener('input', updateTextarea);
+
+        let lastSavedContent = '';
+        function autoSave() {
+            const content = document.getElementById('editor').innerHTML;
+            if (content !== lastSavedContent) {
+                lastSavedContent = content;
+                const now = new Date().toLocaleString();
+                document.getElementById('auto-save-status').textContent = `Oxirgi saqlash: ${now}`;
+            }
+        }
+
+        setInterval(autoSave, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Profil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-gray-600 hover:text-blue-600">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-gray-600 hover:text-blue-600">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                    <li><a href="{% url 'profile' %}" class="text-blue-600 font-semibold">Profil</a></li>
+                    <li><a href="{% url 'settings' %}" class="text-gray-600 hover:text-blue-600">Sozlamalar</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-blue-600 mb-6">Foydalanuvchi Profili</h2>
+
+                    <!-- Profile Info -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Ma’lumotlar</h3>
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <!-- Avatar -->
+                                <div class="flex-shrink-0">
+                                    <img id="user-avatar" src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}https://via.placeholder.com/150{% endif %}" alt="Avatar" class="w-32 h-32 rounded-full border-2 border-gray-200">
+                                    <input type="file" id="avatar-upload" name="avatar" accept="image/*" class="hidden">
+                                    <button type="button" onclick="document.getElementById('avatar-upload').click()" class="mt-2 text-blue-600 hover:underline">Avatarni o‘zgartirish</button>
+                                </div>
+                                <!-- User Info -->
+                                <div class="flex-1">
+                                    <div class="mb-4">
+                                        <label for="id_username" class="block text-sm font-medium text-gray-700">Ism</label>
+                                        {{ form.username }}
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="id_email" class="block text-sm font-medium text-gray-700">Email</label>
+                                        {{ form.email }}
+                                    </div>
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Ma’lumotlarni saqlash</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Parolni O‘zgartirish</h3>
+                        <form method="POST" action="{% url 'profile' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="change_password" value="1">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="current-password" class="block text-sm font-medium text-gray-700">Joriy Parol</label>
+                                    <input id="current-password" name="current_password" type="password" class="mt-1 block w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                </div>
+                                <div>
+                                    <label for="new-password" class="block text-sm font-medium text-gray-700">Yangi Parol</label>
+                                    <input id="new-password" name="new_password" type="password" class="mt-1 block w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                </div>
+                                <div>
+                                    <label for="confirm-password" class="block text-sm font-medium text-gray-700">Yangi Parolni Tasdiqlash</label>
+                                    <input id="confirm-password" name="confirm_password" type="password" class="mt-1 block w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                </div>
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Parolni o‘zgartirish</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Subscription Status -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Obuna Holati</h3>
+                        <p id="subscription-status" class="text-sm text-gray-600">Hozirda: <span class="font-semibold">Free Plan</span></p>
+                        <a href="https://x.ai/grok" target="_blank" class="text-blue-600 hover:underline">SuperGrok obunasiga o‘tish</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('user-avatar').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

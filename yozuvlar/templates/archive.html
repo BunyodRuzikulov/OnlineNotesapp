@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yozuvlar Ilovasi - Arxiv / O‘chirilgan Yozuvlar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Yozuvlar</div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Orqaga</a>
+                <a href="{% url 'logout' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Chiqish</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto py-8 px-4">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Menyu</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-blue-600">Barcha Yozuvlar</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-gray-600 hover:text-blue-600">Kategoriyalar</a></li>
+                    <li><a href="{% url 'archive' %}" class="text-blue-600 font-semibold">Arxiv</a></li>
+                    <li><a href="{% url 'search' %}" class="text-gray-600 hover:text-blue-600">Qidiruv</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-blue-600 mb-6">Arxiv / O‘chirilgan Yozuvlar</h2>
+
+                    <!-- Tabs -->
+                    <div class="flex border-b mb-4">
+                        <button id="archived-tab" onclick="showTab('archived')" class="px-4 py-2 font-semibold text-blue-600 border-b-2 border-blue-600">Arxivlangan</button>
+                        <button id="deleted-tab" onclick="showTab('deleted')" class="px-4 py-2 font-semibold text-gray-600 hover:text-blue-600">O‘chirilgan</button>
+                    </div>
+
+                    <!-- Archived Notes -->
+                    <div id="archived-notes" class="space-y-4">
+                        {% for note in archived_notes %}
+                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm">
+                                <div>
+                                    <h3 class="text-lg font-semibold">{{ note.title }}</h3>
+                                    <p class="text-sm text-gray-600">Sana: {{ note.created_at|date:"Y-m-d" }} | Taglar: {{ note.tags.all|join:", " }}</p>
+                                </div>
+                                <div class="space-x-2">
+                                    <a href="{% url 'restore_note' note.id %}" class="text-green-600 hover:underline">Tiklash</a>
+                                    <a href="{% url 'delete_permanently' note.id %}" class="text-red-600 hover:underline" onclick="return confirm('Yozuvni butunlay o‘chirishni xohlaysizmi?')">Butunlay O‘chirish</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-600">Arxivlangan yozuvlar yo‘q.</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Deleted Notes -->
+                    <div id="deleted-notes" class="space-y-4 hidden">
+                        {% for note in deleted_notes %}
+                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-sm">
+                                <div>
+                                    <h3 class="text-lg font-semibold">{{ note.title }}</h3>
+                                    <p class="text-sm text-gray-600">Sana: {{ note.created_at|date:"Y-m-d" }} | Taglar: {{ note.tags.all|join:", " }}</p>
+                                </div>
+                                <div class="space-x-2">
+                                    <a href="{% url 'restore_note' note.id %}" class="text-green-600 hover:underline">Tiklash</a>
+                                    <a href="{% url 'delete_permanently' note.id %}" class="text-red-600 hover:underline" onclick="return confirm('Yozuvni butunlay o‘chirishni xohlaysizmi?')">Butunlay O‘chirish</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-600">O‘chirilgan yozuvlar yo‘q.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            const archivedTab = document.getElementById('archived-tab');
+            const deletedTab = document.getElementById('deleted-tab');
+            const archivedNotes = document.getElementById('archived-notes');
+            const deletedNotes = document.getElementById('deleted-notes');
+
+            if (tab === 'archived') {
+                archivedTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                deletedTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                deletedTab.classList.add('text-gray-600');
+                archivedNotes.classList.remove('hidden');
+                deletedNotes.classList.add('hidden');
+            } else {
+                deletedTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                archivedTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                archivedTab.classList.add('text-gray-600');
+                deletedNotes.classList.remove('hidden');
+                archivedNotes.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
